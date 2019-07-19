@@ -34,7 +34,7 @@ namespace MyShop.WebUI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return HttpNotFound();
+                return View(productCategory);
             }
             else
             {

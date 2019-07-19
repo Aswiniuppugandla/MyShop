@@ -4,6 +4,7 @@ using MyShop.Core.ViewModels;
 using MyShop.DataAccess.InMemory;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -31,26 +32,31 @@ namespace MyShop.WebUI.Controllers
         public ActionResult Create()
         {
             ProductManagerViewModel viewModel = new ProductManagerViewModel();
-           viewModel.product = new Product();
-            viewModel.productCategories = productCategories.Collection();
+            viewModel.Product = new Product();
+            viewModel.ProductCategories = productCategories.Collection();
             return View(viewModel);
         }
         [HttpPost]
-        public ActionResult Create(Product product)
+        public ActionResult Create(Product product,HttpPostedFileBase file)
         {
             if(!ModelState.IsValid)
             {
-                return HttpNotFound();
+                return View(product);
             }
             else
             {
+                if(file!=null)
+                {
+                    product.Image = product.Id + Path.GetExtension(file.FileName);
+                    file.SaveAs(Server.MapPath("//Content//ProductImages//") + product.Image);
+                }
                 context.Insert(product);
                 context.Commit();
                 return RedirectToAction("Index");
             }
         }
 
-        public ActionResult Edit(string Id)
+        public ActionResult Edit(string Id,ProductManagerViewModel model)
         {
             
             Product product = context.Find(Id);
@@ -61,13 +67,15 @@ namespace MyShop.WebUI.Controllers
             else
             {
                 ProductManagerViewModel viewModel = new ProductManagerViewModel();
-                viewModel.product = new Product();
-                viewModel.productCategories = productCategories.Collection();
+                viewModel.Product = new Product();
+                viewModel.ProductCategories = productCategories.Collection();
                 return View(viewModel);
+
+
             }
         }
         [HttpPost]
-        public ActionResult Edit(string Id,Product product)
+        public ActionResult Edit(Product product, string Id,HttpPostedFileBase file)
         {
             Product productToEdit = context.Find(Id);
             if (productToEdit == null)
@@ -80,9 +88,13 @@ namespace MyShop.WebUI.Controllers
                 {
                     return View(product);
                 }
+                if (file != null)
+                {
+                    productToEdit.Image = product.Id + Path.GetExtension(file.FileName);
+                    file.SaveAs(Server.MapPath("//Content//ProductImages//") + productToEdit.Image);
+                }
                 productToEdit.Category = product.Category;
                 productToEdit.Description = product.Description;
-                productToEdit.Image = product.Image;
                 productToEdit.Price = product.Price;
                 productToEdit.Name = product.Name;
                 context.Commit();
